@@ -18,56 +18,10 @@
 本文档中实验选择开源的[CommonVoice数据](https://commonvoice.mozilla.org/zh-CN/datasets)作为实验数据，针对CommonVoice 5.1中德语（750小时），法语（604小时），西班牙语（521小时），意大利语（167小时），波兰语（119小时）进行多语言以及跨语言语音识别的实验；这些开源数据可以直接下载得到。下载好的数据由音频及训练、验证、测试文本构成。
 
 数据预处理阶段的代码位于CAT的[egs\commonvoice\local目录](https://github.com/thu-spmi/CAT/tree/master/egs/commonvoice)，数据处理参考[egs\TEMPLATE\README.md文件](https://github.com/thu-spmi/CAT/tree/v3-dev/egs/TEMPLATE)
-```
-lang=(de it fr es)
-datadir=/path/to/cv-corpus-5.1-2020-06-22/
-
-saved_dict="saved_dict"
-dict_tmp=data/local/dict_tmp
-```
-**lang**决定训练的语言种类de（德语），it（意大利语），fr（法语），es（西班牙语），实验者可以根据自身研究需要选择不同语种来进行实验。**datadir**是存放训练数据的目录。
-
-**saved_dict**存放完整发音词典，**dict_tmp**存放从文本数据中切分下的未注音的词典（注音部分后续会对其说明）。
-
-```
-if [ $stage -le 1 ] && [ $stop_stage -ge 1 ]; then
-```
-这部分代码仿照kaldi处理，主要生成**train,dev,test**下的**wav.scp,text,utt2spk,spk2utt**文件。
-
-```
-if [ $stage -le 2 ] && [ $stop_stage -ge 2 ]; then
-```
-这部分代码主要是针对Multilingual构建词典，加入噪音`NOISE`、人声噪声`SPOKEN_NOISE`、未知词`UNK`，创建数字编号的声学单元units.txt、数字编号的词典lexicon_numbers.txt、L.fst的输入符号集words.txt、L.fst的输出符号集token.txt，进而生成T.fst和L.fst文件。由data/train/text、dict/lexicon.txt，生成的语言模型G.fst。最后，组合生成一种语言的TLG.fst用于训练。
-
-```
-if [ $stage -le 3 ] && [ $stop_stage -ge 3 ]; then
-```
-这部分代码进行FBank特征提取和特征归一化。由于JoinAP模型基于VGGBLSTM系列模型，所以在位于`conf`目录下的fbank.conf中，设置16K和40维进行特征提取，并同时默认使用三倍数据增广。
-
-
-```
-if [ $stage -le 4 ] && [ $stop_stage -ge 4 ]; then
-```
-这部分代码主要是将单词序列转换为标签序列。
-
-
-```
-if [ $stage -le 5 ] && [ $stop_stage -ge 5 ]; then
-```
-这部分代码将训练以及测试数据加一阶和二阶差分以便于模型训练。
-
-```
-if [ $stage -le 6 ] && [ $stop_stage -ge 6 ]; then
-```
-这部分代码生成den_lm.fst。最后由den_lm.fst和标签文件出发，计算出标签序列$l$的对数概率 $logp(l)$，称为path weight，并整合到data/pickle下。
 
 ## 发音词典
 
-由于CommonVoice数据没有提供相应的词典，所以需要实验者自己来生成。**run_mc.sh**在**stage1**步骤中有如下一条awk+sed命令：
-
-`cat data/${train_set}/text | awk '{$1="";print $0}' | sed 's/ /\n/g' | sort -u >$dict_tmp/wordlist_${x}` 
-
-这一命令在data/local/dict_tmp目录中生成de、fr、es、it未注音的词典（wordlist_de、wordlist_it、wordlist_es、wordlist_fr），接下来利用G2P工具对未注音的词典进行注音。
+由于CommonVoice数据没有提供相应的词典，所以需要实验者自己来生成。
 
 **以下说明G2P工具——Phonetisaurus G2P的安装以及使用**
 
