@@ -137,7 +137,7 @@ dict_tmp=local/dict_tmp/ # 存放未注音及注音完成后存放目录
 
 $$z_t,i =e_i^T h_{t}$$ 其中 $e_i$表示为音素i的`phone embadding`，其具体值为linear layer的权重向量。
 
-而在JoinAP（Joining of Acoustics and Phonology）方法中，$e_i$并不是linear layer的权重向量，它是由$p_i$（51维的“0”、“1”向量，具体生成方式如下面IPA2AF映射所示）经过线性或非线性变换得到：
+而在JoinAP（Joining of Acoustics and Phonology）方法中，$e_i$并不是linear layer的权重向量，它是由$p_i$（51维的音位矢量，具体生成方式如下面IPA2AF映射所示）经过线性或非线性变换得到：
 
 - The JoinAP-Linear method
 
