@@ -133,7 +133,9 @@ dict_tmp=local/dict_tmp/ # 存放未注音及注音完成后存放目录
 
 在多语言声学模型训练时，为了促进多语言信息共享与迁移，[JoinAP论文](http://oa.ee.tsinghua.edu.cn/~ouzhijian/pdf/ASRU21_JoinAP.pdf)引入音位矢量（phonological-vector）来表示每个音素。音位矢量的构建用到了panphon工具包。panphon工具包定义了全部 IPA 音素符号到发音特征（Articulatory Feature, AF）的映射；这样可以根据 IPA 音素得到它的发音特征表达，进而编码成51维音位矢量（描述见后）。
 
-在传统方法中定义了帧t在通过声学特征DNN后输出$h_t$,在经过最后的linear layer能计算logit：$`z_i_,_t = e_i^T * h_t`$,其中$e_i$为音素i的`phone embadding`，其具体值为linear layer的权重向量。
+在传统方法中定义了帧t在通过声学特征DNN后输出$h_t$,在经过最后的linear layer能计算logit:
+
+$$`z_i_,_t = e_i^T * h_t`$$ 其中 $e_i$为音素i的`phone embadding`，其具体值为linear layer的权重向量。
 
 而在JoinAP方法中，$e_i$并不是linear layer的权重向量，它是由$p_i$(51维的"0"、"1"向量，具体生成方式如下面IPA2AF映射所示)经过线性或非线性变换得到：
 
