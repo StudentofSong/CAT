@@ -133,16 +133,17 @@ dict_tmp=local/dict_tmp/ # 存放未注音及注音完成后存放目录
 
 在多语言声学模型训练时，为了促进多语言信息共享与迁移，[JoinAP论文](http://oa.ee.tsinghua.edu.cn/~ouzhijian/pdf/ASRU21_JoinAP.pdf)引入音位矢量（phonological-vector）来表示每个音素。音位矢量的构建用到了panphon工具包。panphon工具包定义了全部 IPA 音素符号到发音特征（Articulatory Feature, AF）的映射；这样可以根据 IPA 音素得到它的发音特征表达，进而编码成51维音位矢量（描述见后）。
 
-在传统方法中定义了帧t在经过声学特征DNN后输出$h_t$，在经过最后的linear layer能计算logit:$z_i_,_t = e_i^Th_t$ ,其中$e_i$为`phone i`的`phone embadding`，其具体值为linear layer的权重向量。
+在传统方法中定义了帧t在经过声学特征DNN后输出$ h_t $，在经过最后的linear layer能计算logit:$ z_i_,_t = e_i^Th_t $ ,其中$ e_i $为`phone i`的`phone embadding`，其具体值为linear layer的权重向量。
 
-而在JoinAP方法中，$e_i$并不是linear layer的权重向量，它是由$p_i$51维的"0"、"1"向量，具体生成方式如下面IPA2AF映射所示经过线性或非线性变换所生成，下面只对线性变换作讲解：
+而在JoinAP方法中，$ e_i $并不是linear layer的权重向量，它是由$ p_i $(51维的"0"、"1"向量，具体生成方式如下面IPA2AF映射所示)经过线性或非线性变换得到：
 
 - The JoinAP-Linear method
 
-$e_i = Ap_i$ 其中A为线性层的权重参数，由模型学习生成
+	$e_i = Ap_i$ 其中A为线性层的权重参数，由模型学习生成
+	
 - The JoinAP-Nonlinear method
  
- $e_i = A_2σ(A_1p_i)$ ,其中A_1、A_2为非线性层的权重参数，由模型学习生成
+	$e_i = A_2σ(A_1p_i)$ ,其中A_1、A_2为非线性层的权重参数，由模型学习生成
 
 JoinAP（Joining of Acoustics and Phonology）方法，意为结合了声学（Acoustics）和音系学（Phonology）的方法。
 从顶往下，将音素$i$的音位矢量经过变换（phonological transformation），得到音素嵌入（phone embedding）；自底向上，声学深度神经网络（Deep Neural Network、DNN）提取出高层声学特征$h_t$。将音素$i$的phone embedding与声学特征$h_t$做内积，计算出$t$时刻下音素$i$的匹配得分（logit），便可用于基于CTC或CTC-CRF的语音识别。不难看出，JoinAP方法引入音位矢量，对声学神经网络的最后输出线性层进行了修改。
