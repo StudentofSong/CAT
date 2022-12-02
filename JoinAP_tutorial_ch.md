@@ -17,7 +17,7 @@
 
 本文档中实验选择开源的[CommonVoice数据](https://commonvoice.mozilla.org/zh-CN/datasets)作为实验数据，针对CommonVoice 5.1中德语（750小时），法语（604小时），西班牙语（521小时），意大利语（167小时），波兰语（119小时）进行多语言以及跨语言语音识别的实验；这些开源数据可以直接下载得到。下载好的数据由音频及训练、验证、测试文本构成。
 
-数据预处理阶段的代码位于CAT的[egs\commonvoice\local目录](https://github.com/thu-spmi/CAT/tree/master/egs/commonvoice)，数据处理参考[egs\TEMPLATE\README.md文件](https://github.com/thu-spmi/CAT/tree/v3-dev/egs/TEMPLATE)
+数据预处理阶段的代码位于CAT的[egs\commonvoice\local目录](https://github.com/thu-spmi/CAT/tree/master/egs/commonvoice)，数据处理参考[egs\TEMPLATE\README.md文件](egs/TEMPLATE)
 
 ## 发音词典
 
