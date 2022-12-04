@@ -378,3 +378,79 @@ class Wav2Vec2Encoder(AbsEncoder):
         if self._wav2vec2_encoder is not None:
             x = self._wav2vec2_encoder(x, xlens)
         return self._enc_head(x, xlens)
+    
+
+class JoinAPLinearEncode(AbsEncoder):
+    def __init__(
+        self,
+        pv_path: str,
+        enc_head_type: str = 'LSTM', **enc_head_kwargs) -> None:
+        """
+        pv_path（str）：the path of pv
+        enc_head_type (str): any of the AbsEncoder class, or 'Linear'
+        enc_head_kwargs : options passed to enc_head_type()
+        Param:
+            P: phonological vector matrix
+            A: phoneme transformation matrix with size [phonological_dim, phoneme_dim]
+        Please refer to Equation (2) of Sec. 3.2 in the paper.
+        """
+        super().__init__(False)
+     
+        self.A = nn.Linear(51,  enc_head_kwargs['hdim'])
+        self.P, p_c = self.init_pv(pv_path)
+        self.linear = nn.Linear(p_c, enc_head_kwargs['num_classes'])
+        T_enc = eval(enc_head_type)
+        assert issubclass(T_enc, AbsEncoder)
+        self._enc_head = T_enc(**enc_head_kwargs)
+    def init_pv(self, fin):
+        pv = torch.Tensor(np.load(fin))  
+        P = nn.Parameter(pv)
+        p_c = P.size()[0]
+        return P, p_c
+    def forward(self, x: torch.Tensor, xlens: torch.Tensor,hidden=None):
+        enc_out,ls = self.T_enc(x,xlens,hidden)
+        out = self.A(self.P) # [pv_dim, hdim]
+        out = torch.einsum("bth, ch -> btc", enc_out, out)
+        out = self.linear(out) # [batch, time, num_class]
+        return out, ls
+    
+    
+class JoinAPNonLinearEncode(AbsEncoder):
+    def __init__(
+        self,
+        pv_path: str,
+        enc_head_type: str = 'LSTM', **enc_head_kwargs) -> None:
+        """
+        pv_path（str）：the path of pv
+        enc_head_type (str): any of the AbsEncoder class, or 'Linear'
+        enc_head_kwargs : options passed to enc_head_type()
+        Params:
+            P   : phonological vector matrix
+            A1  : linear transformation matrix with size [phonological_dim, hdim1]
+            A2  : linear transformation matrix with size [hdim1, hdim2]
+        Please refer to Equation (3) in Sec. 3.2 in the paper.
+        """
+        super().__init__(False)
+        self.A2 = nn.Linear(512, enc_head_kwargs['hdim'])
+        self.A1 = nn.Linear(51, 512)
+        self.sig = nn.Sigmoid()
+        self.P, p_c = self.init_pv(pv_path)
+        self.linear = nn.Linear(p_c, enc_head_kwargs['hdim'])
+        T_enc = eval(enc_head_type)
+        assert issubclass(T_enc, AbsEncoder)
+        self._enc_head = T_enc(**enc_head_kwargs)
+
+    def init_pv(self, fin):
+        pv = torch.Tensor(np.load(fin))  
+        P = nn.Parameter(pv)
+        p_c = P.size()[0]
+        return P, p_c
+    def forward(self, x: torch.Tensor, xlens: torch.Tensor,hidden=None):
+        enc_out,ls = self.T_enc(x,xlens,hidden)
+        out = self.A1(self.P) # [pv_dim, 512]
+        out = self.sig(out)
+        out = self.A2(out) # [pv_dim, hdim]
+        out = torch.einsum("bth, ch -> btc", enc_out, out)
+        out = self.linear(out) # [batch, time, num_class]
+        return out, ls
+
